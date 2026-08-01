@@ -1,3 +1,4 @@
+Transform: AWS::Serverless-2016-10-31
 Resources:
   NotesTable:
     Type: AWS::DynamoDB::Table
@@ -11,6 +12,7 @@ Resources:
           KeyType: HASH
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
+
   CreateNoteFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -30,18 +32,13 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NotesTable
-      Events:
-        NotesApiPOSTnotes:
-          Type: Api
-          Properties:
-            Path: /notes
-            Method: POST
-            RestApiId: !Ref NotesApi
+
   CreateNoteFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
     Properties:
       LogGroupName: !Sub /aws/lambda/${CreateNoteFunction}
+
   ListNotesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -61,18 +58,65 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NotesTable
-      Events:
-        NotesApiGETnotes:
-          Type: Api
-          Properties:
-            Path: /notes
-            Method: GET
-            RestApiId: !Ref NotesApi
+
   ListNotesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
     Properties:
       LogGroupName: !Sub /aws/lambda/${ListNotesFunction}
+
+  DeleteNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: DeleteNoteFunction
+      CodeUri: lambda/delete-note
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      MemorySize: 128
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          NOTESTABLE_TABLE_NAME: !Ref NotesTable
+          NOTESTABLE_TABLE_ARN: !GetAtt NotesTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotesTable
+
+  DeleteNoteFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${DeleteNoteFunction}
+
+  UpdateNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: UpdateNoteFunction
+      CodeUri: lambda/update-note
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      MemorySize: 128
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          NOTESTABLE_TABLE_NAME: !Ref NotesTable
+          NOTESTABLE_TABLE_ARN: !GetAtt NotesTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotesTable
+
+  UpdateNoteFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${UpdateNoteFunction}
+
   NotesApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -97,13 +141,27 @@ Resources:
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateNoteFunction.Arn}/invocations
               responses: {}
+          /notes/{id}:
+            put:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateNoteFunction.Arn}/invocations
+              responses: {}
+            delete:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteNoteFunction.Arn}/invocations
+              responses: {}
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
       Cors:
         MaxAge: 5
         AllowOrigin: '''*'''
         AllowHeaders: '''Content-Type'''
-        AllowMethods: '''GET,POST,OPTIONS'''
+        AllowMethods: '''GET,POST,PUT,DELETE,OPTIONS'''
+
   NotesWebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
