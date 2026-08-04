@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <style>
+        body {
+            font-family: Arial; max-width: 600px; margin: 40px auto; }
+            #notes { margin-top: 20px; }
+            .note { padding: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
+     </style>
+     
+</head>
+<body>
+    <h1>Notes App</h1>
+
+    <h3>Add a Note</h3>
+    <input id="noteText" type="text" placeholder="Write a note..."/>
+    <button onclick="createNote()">Add Note</button>
+
+    <h3>All Notes</h3>
+    <div id="notes">
+    </div>
+    <script src="script.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            max-width: 600px;
+            margin: 40px auto;
+            padding : 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #noteText{
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        button{
+           background: #4CAF50;
+              color: white;
+                padding: 10px 16px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 15px; 
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .note{
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .note button {
+            background: #007BFF;
+            margin-right: 10px;
+        }
+
+        .note button:hover {
+            background: #0069d9;
+        }
+
+        .note button:last-child {
+            background: #dc3545;
+        }
+
+        .note button:last-child:hover {
+            background: #c82333;
+        }
+
+    </style>
+</body>
+
+</html>
