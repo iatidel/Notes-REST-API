@@ -1,4 +1,11 @@
 Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  LambdaZipBucket:
+    Type: String
+    Default: notes-app-lambda-zipfiles
+    Description: S3 bucket where the Lambda zip files are stored
+
 Resources:
   NotesTable:
     Type: AWS::DynamoDB::Table
@@ -19,19 +26,19 @@ Resources:
       Description: !Sub
         - Stack ${AWS::StackName} Function ${ResourceName}
         - ResourceName: CreateNoteFunction
-      CodeUri: lambda/create-note
+      CodeUri:
+        Bucket: !Ref LambdaZipBucket
+        Key: create-note.zip
       Handler: app.lambda_handler
       Runtime: python3.13
       MemorySize: 128
       Timeout: 30
       Tracing: Active
+      Role: arn:aws:iam::670609912546:role/LabRole
       Environment:
         Variables:
           NOTESTABLE_TABLE_NAME: !Ref NotesTable
           NOTESTABLE_TABLE_ARN: !GetAtt NotesTable.Arn
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
 
   CreateNoteFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -45,19 +52,19 @@ Resources:
       Description: !Sub
         - Stack ${AWS::StackName} Function ${ResourceName}
         - ResourceName: ListNotesFunction
-      CodeUri: lambda/list-notes
+      CodeUri:
+        Bucket: !Ref LambdaZipBucket
+        Key: list-notes.zip
       Handler: app.lambda_handler
       Runtime: python3.13
       MemorySize: 128
       Timeout: 30
       Tracing: Active
+      Role: arn:aws:iam::670609912546:role/LabRole
       Environment:
         Variables:
           NOTESTABLE_TABLE_NAME: !Ref NotesTable
           NOTESTABLE_TABLE_ARN: !GetAtt NotesTable.Arn
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
 
   ListNotesFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -71,19 +78,19 @@ Resources:
       Description: !Sub
         - Stack ${AWS::StackName} Function ${ResourceName}
         - ResourceName: DeleteNoteFunction
-      CodeUri: lambda/delete-note
+      CodeUri:
+        Bucket: !Ref LambdaZipBucket
+        Key: delete-note.zip
       Handler: app.lambda_handler
       Runtime: python3.13
       MemorySize: 128
       Timeout: 30
       Tracing: Active
+      Role: arn:aws:iam::670609912546:role/LabRole
       Environment:
         Variables:
           NOTESTABLE_TABLE_NAME: !Ref NotesTable
           NOTESTABLE_TABLE_ARN: !GetAtt NotesTable.Arn
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
 
   DeleteNoteFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -97,19 +104,19 @@ Resources:
       Description: !Sub
         - Stack ${AWS::StackName} Function ${ResourceName}
         - ResourceName: UpdateNoteFunction
-      CodeUri: lambda/update-note
+      CodeUri:
+        Bucket: !Ref LambdaZipBucket
+        Key: update-note.zip
       Handler: app.lambda_handler
       Runtime: python3.13
       MemorySize: 128
       Timeout: 30
       Tracing: Active
+      Role: arn:aws:iam::670609912546:role/LabRole
       Environment:
         Variables:
           NOTESTABLE_TABLE_NAME: !Ref NotesTable
           NOTESTABLE_TABLE_ARN: !GetAtt NotesTable.Arn
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
 
   UpdateNoteFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -141,6 +148,31 @@ Resources:
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateNoteFunction.Arn}/invocations
               responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
+                      method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+              responses:
+                "200":
+                  description: CORS response
+                  headers:
+                    Access-Control-Allow-Headers:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Methods:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Origin:
+                      schema:
+                        type: string
           /notes/{id}:
             put:
               x-amazon-apigateway-integration:
@@ -154,6 +186,31 @@ Resources:
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteNoteFunction.Arn}/invocations
               responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                type: mock
+                requestTemplates:
+                  application/json: '{"statusCode": 200}'
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
+                      method.response.header.Access-Control-Allow-Methods: "'GET,PUT,DELETE,OPTIONS'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+              responses:
+                "200":
+                  description: CORS response
+                  headers:
+                    Access-Control-Allow-Headers:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Methods:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Origin:
+                      schema:
+                        type: string
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
       Cors:
@@ -161,6 +218,38 @@ Resources:
         AllowOrigin: '''*'''
         AllowHeaders: '''Content-Type'''
         AllowMethods: '''GET,POST,PUT,DELETE,OPTIONS'''
+
+  CreateNoteFunctionApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CreateNoteFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${NotesApi}/*/*
+
+  ListNotesFunctionApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ListNotesFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${NotesApi}/*/*
+
+  DeleteNoteFunctionApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeleteNoteFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${NotesApi}/*/*
+
+  UpdateNoteFunctionApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref UpdateNoteFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${NotesApi}/*/*
 
   NotesWebsiteBucket:
     Type: AWS::S3::Bucket
@@ -185,3 +274,11 @@ Resources:
             Principal: '*'
             Action: s3:GetObject
             Resource: !Sub ${NotesWebsiteBucket.Arn}/*
+
+Outputs:
+  WebsiteURL:
+    Description: URL of the S3 static website
+    Value: !GetAtt NotesWebsiteBucket.WebsiteURL
+  ApiUrl:
+    Description: Base URL of the Notes API
+    Value: !Sub https://${NotesApi}.execute-api.${AWS::Region}.amazonaws.com/Prod
