@@ -1,7 +1,7 @@
 // ===============================
 // API Gateway endpoint (backend URL created by CloudFormation)
 // All frontend requests will go to this URL.
-const API = "https://j3i2yt8vfb.execute-api.us-east-1.amazonaws.com/Prod/notes";
+const API = "https://hvq004yygk.execute-api.us-east-1.amazonaws.com/Prod/notes";
 // ===============================
 
 
