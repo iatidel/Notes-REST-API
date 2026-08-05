@@ -64,7 +64,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 201,
             "headers": {
-                "Content-Type": "application/json"  # tells the browser "this is JSON data"
+                "Content-Type": "application/json",  # tells the browser "this is JSON data"
+                "Access-Control-Allow-Origin": "*"   # allows any website to call this API
             },
             "body": json.dumps({"message": "Note created successfully", "note_id": note_id})
         }
@@ -76,7 +77,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 500,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"   # allows any website to call this API
             },
             "body": json.dumps({"error": "Failed to create note"})
         }
