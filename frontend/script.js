@@ -87,27 +87,36 @@ async function updateNote(id) {
   const newText = prompt("Enter new text:");
   if (!newText) return;
 
-  // Send the updated text to the backend
+// Send the updated text to the backend
   const response = await fetch(`${API}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text: newText })
   });
 
-  // Reload the notes list so the updated note appears
-  listNotes();
+  // If the backend returns 200, the update worked
+  if (response.status === 200) {
+    // Reload the notes list so the updated note appears
+    listNotes();
+  } else {
+    alert("Error updating note.");
+  }
 }
-
 
 // ===============================
 // DELETE NOTE (DELETE /notes/{id})
 // ===============================
 async function deleteNote(id) {
   // Tell the backend to delete the note with this ID
-  await fetch(`${API}/${id}`, {
+  const response = await fetch(`${API}/${id}`, {
     method: "DELETE"
   });
 
-  // Reload the notes list so the deleted note disappears
-  listNotes();
+  // If the backend returns 200, the delete worked
+  if (response.status === 200) {
+    // Reload the notes list so the deleted note disappears
+    listNotes();
+  } else {
+    alert("Error deleting note.");
+  }
 }
