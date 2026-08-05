@@ -44,7 +44,8 @@ def lambda_handler(event, context):
             return {
                 "statusCode": 400,
                 "headers": {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
                 },
                 "body": json.dumps({"error": "Note text is required"})
             }
@@ -59,7 +60,8 @@ def lambda_handler(event, context):
             return {
                 "statusCode": 404,
                 "headers": {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
                 },
                 "body": json.dumps({"error": f"Note {note_id} not found"})
             }
@@ -79,7 +81,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
             },
             "body": json.dumps(updated_item['Attributes'])
         }
@@ -90,7 +93,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 500,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
             },
             "body": json.dumps({"error": "Failed to update note"})
         }
