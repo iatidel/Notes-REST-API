@@ -41,7 +41,8 @@ def lambda_handler(event, context):
             return {
                 "statusCode": 404,
                 "headers": {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
                 },
                 "body": json.dumps({"error": f"Note {note_id} not found"})
             }
@@ -53,7 +54,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
             },
             "body": json.dumps({"message": f"Note {note_id} deleted"})
         }
@@ -64,7 +66,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 500,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
             },
             "body": json.dumps({"error": "Failed to delete note"})
         }
