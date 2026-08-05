@@ -38,7 +38,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": {
-                "Content-Type": "application/json"  # tells the browser "this is JSON data"
+                "Content-Type": "application/json",  # tells the browser "this is JSON data"
+                "Access-Control-Allow-Origin": "*"   # allows any website to call this API
             },
             "body": json.dumps(notes)  # convert our Python list into a JSON string
         }
@@ -49,7 +50,8 @@ def lambda_handler(event, context):
         return {
             "statusCode": 500,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
             },
             "body": json.dumps({"error": "Failed to retrieve notes"})
         }
