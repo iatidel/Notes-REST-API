@@ -4,20 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes App</title>
-     
-</head>
-<body>
-    <h1>Notes App</h1>
-
-    <h3>Add a Note</h3>
-    <input id="noteText" type="text" placeholder="Write a note..."/>
-    <button onclick="createNote()">Add Note</button>
-
-    <h3>All Notes</h3>
-    <div id="notes">
-    </div>
-    <script src="script.js"></script>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -30,6 +16,10 @@
             text-align: center;
             color: #333;
         }
+
+        h3 {
+            margin-top: 30px;
+        }
         #noteText{
             width: 100%;
             padding: 12px;
@@ -37,6 +27,19 @@
             border-radius: 6px;
             margin-bottom: 10px;
             font-size: 16px;
+        }
+
+        #getNoteId{
+            width: 100%;
+             padding: 12px;
+             border: 1px solid #ccc;
+             border-radius: 6px;
+             margin-bottom: 10px;
+             font-size: 16px;
+        }
+
+        #singleNoteResult .note {
+             border-left: 4px solid #4CAF50;
         }
 
         button{
@@ -78,7 +81,28 @@
             background: #c82333;
         }
 
+
+        
     </style>
+</head>
+<body>
+    <h1>Notes App</h1>
+
+    <h3>Add a Note</h3>
+    <input id="noteText" type="text" placeholder="Write a note..."/>
+    <button onclick="createNote()">Add Note</button>
+
+    <h3>Get a Single Note</h3>
+    <input id="getNoteId" type="text" placeholder="Paste a note ID..."/>
+    <button onclick="getNote()">Get Note</button>
+    <div id="singleNoteResult">
+        <p style="color:#999;">Enter an ID above to look up a note.</p>
+    </div>
+
+    <h3>All Notes</h3>
+    <div id="notes">
+    </div>
+    <script src="script.js"></script>
 </body>
 
 </html>

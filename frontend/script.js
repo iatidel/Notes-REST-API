@@ -1,122 +1,116 @@
-// ===============================
-// API Gateway endpoint (backend URL created by CloudFormation)
-// All frontend requests will go to this URL.
-const API = "https://hvq004yygk.execute-api.us-east-1.amazonaws.com/Prod/notes";
-// ===============================
+// ============================================
+// PASTE YOUR API GATEWAY INVOKE URL HERE
+// ============================================
+const API_URL = "https://iyxzn2e6w6.execute-api.us-east-1.amazonaws.com/Prod";
 
-
-// When the page loads, automatically call GET /notes
 window.onload = () => {
   listNotes();
 };
 
-
-// ===============================
-// CREATE NOTE (POST /notes)
-// ===============================
 async function createNote() {
-  // Get the text the user typed in the input box
   const text = document.getElementById("noteText").value.trim();
+  if (!text) return alert("Note text cannot be empty.");
 
-  // If the input is empty, stop and warn the user
-  if (!text) {
-    alert("Note text cannot be empty.");
-    return;
-  }
+  try {
+    const response = await fetch(`${API_URL}/notes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text })
+    });
 
-  // Send the note text to the backend using POST
-  const response = await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text })   // send the note text as JSON
-  });
+    if (!response.ok) throw new Error(`Create failed with status ${response.status}`);
 
-  // If the backend returns 201, the note was created successfully
-  if (response.status === 201) {
-    // Clear the input box
     document.getElementById("noteText").value = "";
-
-    // Reload the notes list so the new note appears
     listNotes();
-  } else {
-    alert("Error creating note.");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to create note. Check the console for details.");
   }
 }
 
-
-// ===============================
-// LIST NOTES (GET /notes)
-// ===============================
 async function listNotes() {
-  // Ask the backend for all notes
-  const response = await fetch(API);
-
-  // Convert the backend JSON response into a JavaScript array
-  const notes = await response.json();
-
-  // Find the HTML container where notes will be displayed
   const container = document.getElementById("notes");
 
-  // Clear old notes before adding new ones
-  container.innerHTML = "";
+  try {
+    const response = await fetch(`${API_URL}/notes`);
+    if (!response.ok) throw new Error(`List failed with status ${response.status}`);
 
-  // Loop through each note and create a visual card for it
-  notes.forEach(note => {
-    const div = document.createElement("div");
-    div.className = "note";
+    const notes = await response.json();
+    container.innerHTML = "";
 
-    // Build the HTML for each note card
-    div.innerHTML = `
-      <p><strong>${note.text}</strong></p>
-      <p>ID: ${note.id}</p>
-      <button onclick="updateNote('${note.id}')">Update</button>
-      <button onclick="deleteNote('${note.id}')">Delete</button>
-    `;
-
-    // Add the note card to the page
-    container.appendChild(div);
-  });
+    notes.forEach(n => {
+      const div = document.createElement("div");
+      div.className = "note";
+      div.innerHTML = `
+        <p><strong>${n.text}</strong></p>
+        <p>ID: ${n.id}</p>
+        <button onclick="updateNote('${n.id}')">Update</button>
+        <button onclick="deleteNote('${n.id}')">Delete</button>
+      `;
+      container.appendChild(div);
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p>Failed to load notes. Check the console for details.</p>";
+  }
 }
 
-
-// ===============================
-// UPDATE NOTE (PUT /notes/{id})
-// ===============================
 async function updateNote(id) {
-  // Ask the user for the new text
   const newText = prompt("Enter new text:");
   if (!newText) return;
 
-// Send the updated text to the backend
-  const response = await fetch(`${API}/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: newText })
-  });
+  try {
+    const response = await fetch(`${API_URL}/notes/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: newText })
+    });
 
-  // If the backend returns 200, the update worked
-  if (response.status === 200) {
-    // Reload the notes list so the updated note appears
+    if (!response.ok) throw new Error(`Update failed with status ${response.status}`);
     listNotes();
-  } else {
-    alert("Error updating note.");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update note. Check the console for details.");
   }
 }
 
-// ===============================
-// DELETE NOTE (DELETE /notes/{id})
-// ===============================
 async function deleteNote(id) {
-  // Tell the backend to delete the note with this ID
-  const response = await fetch(`${API}/${id}`, {
-    method: "DELETE"
-  });
-
-  // If the backend returns 200, the delete worked
-  if (response.status === 200) {
-    // Reload the notes list so the deleted note disappears
+  try {
+    const response = await fetch(`${API_URL}/notes/${id}`, { method: "DELETE" });
+    if (!response.ok) throw new Error(`Delete failed with status ${response.status}`);
     listNotes();
-  } else {
-    alert("Error deleting note.");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete note. Check the console for details.");
+  }
+}
+
+async function getNote() {
+  const id = document.getElementById("getNoteId").value.trim();
+  const resultDiv = document.getElementById("singleNoteResult");
+
+  if (!id) return alert("Please paste a note ID.");
+
+  try {
+    const response = await fetch(`${API_URL}/notes/${id}`);
+
+    if (response.status === 404) {
+      resultDiv.innerHTML = "<p>No note found with that ID.</p>";
+      return;
+    }
+
+    if (!response.ok) throw new Error(`Get failed with status ${response.status}`);
+
+    const note = await response.json();
+    resultDiv.innerHTML = `
+      <div class="note">
+        <p><strong>${note.text}</strong></p>
+        <p>ID: ${note.id}</p>
+        <p>Created: ${note.createdAt}</p>
+      </div>
+    `;
+  } catch (err) {
+    console.error(err);
+    resultDiv.innerHTML = "<p>Failed to fetch note. Check the console for details.</p>";
   }
 }

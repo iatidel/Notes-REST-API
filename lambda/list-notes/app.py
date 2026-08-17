@@ -21,13 +21,48 @@ table = dynamodb.Table(table_name)
 
 
 # This is the main function AWS runs every time this Lambda is triggered.
-# "event" holds details about the incoming request (not used here since
-# List Notes doesn't need any input - it just reads everything).
+# "event" holds details about the incoming request. We now use it to check
+# whether this call is GET /notes (list everything) or GET /notes/{id}
+# (fetch just one note), since this same function handles both routes.
 # "context" holds info about the execution environment (rarely needed).
 def lambda_handler(event, context):
     # try/except: if anything goes wrong inside "try", we catch the error
     # instead of letting the whole Lambda crash with an ugly, unclear failure
     try:
+        # Check if this request came in with an {id} in the URL, e.g. /notes/123
+        # API Gateway puts path parameters here when the route has {id} in it
+        path_params = event.get('pathParameters')
+
+        # Case 1: GET /notes/{id} -> the caller wants just one specific note
+        if path_params and path_params.get('id'):
+            note_id = path_params['id']
+
+            # Ask DynamoDB for the single item matching this id
+            response = table.get_item(Key={'id': note_id})
+            item = response.get('Item')
+
+            # If no item came back, that id doesn't exist in the table
+            if not item:
+                return {
+                    "statusCode": 404,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    "body": json.dumps({"error": "Note not found"})
+                }
+
+            # Found it - return the single note as JSON
+            return {
+                "statusCode": 200,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                },
+                "body": json.dumps(item)
+            }
+
+        # Case 2: GET /notes -> the caller wants every note (original behavior)
         # Ask DynamoDB to read every single item in the table
         response = table.scan()
 
